@@ -6,16 +6,15 @@ function UserList(){
     const [user,setUser]=useState([]);
     const [dpData, setDpData] = useState([]);
     const [foundUser, setFoundUser] = useState(user);
+    console.log(dpData);
     
     const getDpData=()=>{
         fetch("https://geo.api.gouv.fr/departements")
     
     .then(function(response){
-        console.log(response)
         return response.json();
     })
     .then(function(jsonData){
-        console.log(jsonData)
         setDpData(jsonData)
     })
 }
@@ -29,29 +28,32 @@ function UserList(){
         }
         )
         .then(function(response){
-            console.log(response)
             return response.json();
         })
         .then(function(myJson){
-            console.log(myJson);
-            setUser(myJson)
+            setUser(myJson);
+            setFoundUser(myJson);
         })
     }
     useEffect(()=>{
             getUser();
+            setFoundUser(user);
             getDpData();
     },[]);
 
+
     const filter = (e) =>{
         const dprtKey = e.target.value;
+        //on récupère la valeur de l'option sélectionnée
         if (dprtKey !== ""){
             let results = [];
-            //on filtre
+            //on filtre le tableau des départements de chaque usager
             user.filter((util)=>{
                 util.departments.forEach(dpr => {
-                    if(dpr === dprtKey){
+                    if(dpr == dprtKey){
                         results.push(util);
                     }
+                return results;
                 });
             });
             setFoundUser(results);
@@ -70,6 +72,7 @@ function UserList(){
             )) : (
             <h2>Aucun résultat</h2>
             )}
+            <h2>Filtrer en fonction des départements</h2>
             <select defaultValue={""} onChange={filter}>
                 <option value="" >Aucun</option>
                 {dpData && dpData.length > 0 && dpData.map((dpr)=>
