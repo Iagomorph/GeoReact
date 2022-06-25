@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from "react";
+import React, { useCallback, useEffect, useState} from "react";
 
 
 
@@ -6,8 +6,12 @@ function UserList(){
     const [user,setUser]=useState([]);
     const [dpData, setDpData] = useState([]);
     const [foundUser, setFoundUser] = useState(user);
-    console.log(dpData);
-    
+    const [dpList, setDpList] = useState([]);
+    //constante du tableau de départements des utilisateurs
+    // const [userDep, setUserDep] = useState([]);
+    // //constante du tableau des code des départements
+    // const [depCode, setDepCode] = useState([]);
+
     const getDpData=()=>{
         fetch("https://geo.api.gouv.fr/departements")
     
@@ -33,14 +37,51 @@ function UserList(){
         .then(function(myJson){
             setUser(myJson);
             setFoundUser(myJson);
+            dpDataToArray();
         })
     }
+
+
     useEffect(()=>{
             getUser();
             setFoundUser(user);
             getDpData();
+            dpDataToArray();
     },[]);
 
+    const dpDataToArray=()=> {
+        //extrait les départements dans lesquels les utilisateurs peuvent se déplacer
+        //puis extrait les infos de ces départements pour les passer en option du select
+        let userDep = [];
+        let userDepTab = [];
+        let depList = [];
+        //on extrait les tableaux de départements des données utilisateurs dans userDepTab
+        user.forEach(user=>{
+            console.log(user.departments)
+            if(!userDepTab.includes(user.departments)){
+                userDepTab.push(user.departments);
+            }
+        });
+        //on extrait les départements uniques du nouveau tableau dans un userDep
+        userDepTab.forEach(tab=>{
+            for (let i = 0; i < tab.length; i++) {
+                if(!userDep.includes(tab[i])){
+                    userDep.push(tab[i]);
+                }
+            }
+        });
+        //on compare les codes de départements avec les départements extraits des utilisateurs
+        //et on extrait les départements qui concorde dans depList
+        dpData.forEach(dpr => {
+            for (let i = 0; i < userDep.length; i++){
+                if(userDep[i] == dpr.code){
+                    depList.push(dpr);
+                }
+            }
+            });
+        //on défini le state de DpList avec les départements de depList
+        setDpList(depList);
+    }
 
     const filter = (e) =>{
         const dprtKey = e.target.value;
@@ -53,8 +94,8 @@ function UserList(){
                     if(dpr == dprtKey){
                         results.push(util);
                     }
-                return results;
                 });
+                return results;
             });
             setFoundUser(results);
         }else{
@@ -75,7 +116,7 @@ function UserList(){
             <h2>Filtrer en fonction des départements</h2>
             <select defaultValue={""} onChange={filter}>
                 <option value="" >Aucun</option>
-                {dpData && dpData.length > 0 && dpData.map((dpr)=>
+                {dpList && dpList.length > 0 && dpList.map((dpr)=>
                 <option key={dpr.code} value={dpr.code}>{dpr.nom} N° {dpr.code}</option>
                 )}
             </select>
