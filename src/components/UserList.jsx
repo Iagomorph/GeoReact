@@ -89,8 +89,7 @@ function UserList(){
             }
             });
         //on défini le state de DpList avec les départements de depList
-            setDpList(depList);
-
+            setDpList(list => list = depList);
     }
 
     const filter = (e) =>{
