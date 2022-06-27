@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState} from "react";
+import React, { useEffect, useState} from "react";
 
 
 
@@ -7,22 +7,26 @@ function UserList(){
     const [dpData, setDpData] = useState([]);
     const [foundUser, setFoundUser] = useState(user);
     const [dpList, setDpList] = useState([]);
-    //constante du tableau de départements des utilisateurs
-    // const [userDep, setUserDep] = useState([]);
-    // //constante du tableau des code des départements
-    // const [depCode, setDepCode] = useState([]);
+
+
 
     const getDpData=()=>{
-        fetch("https://geo.api.gouv.fr/departements")
+    //on récupère les données depuis l'api
+    fetch("https://geo.api.gouv.fr/departements")
     
     .then(function(response){
+        //on converti les données reçues au format json
         return response.json();
     })
     .then(function(jsonData){
+        //on set le state de DpData avec les données
         setDpData(jsonData)
     })
 }
+
+
     const getUser=()=>{
+        //on récupère les données du json 
         fetch('./data.json'
         ,{
             headers :{
@@ -32,22 +36,28 @@ function UserList(){
         }
         )
         .then(function(response){
+            // on retourne les données sous format json 
             return response.json();
         })
-        .then(function(myJson){
-            setUser(myJson);
-            setFoundUser(myJson);
-            dpDataToArray();
+        .then(function(dataJson){
+            //on set le User avec ces données, la liste de foundUser également (pour afficher la liste), et l'extarction de données pour le filtre
+            setUser(dataJson);
+            setFoundUser(dataJson);
         })
     }
 
 
     useEffect(()=>{
             getUser();
-            setFoundUser(user);
             getDpData();
+            setFoundUser(user);
             dpDataToArray();
     },[]);
+
+
+    useEffect(()=>{
+        dpDataToArray()
+    }, []);
 
     const dpDataToArray=()=> {
         //extrait les départements dans lesquels les utilisateurs peuvent se déplacer
@@ -57,7 +67,6 @@ function UserList(){
         let depList = [];
         //on extrait les tableaux de départements des données utilisateurs dans userDepTab
         user.forEach(user=>{
-            console.log(user.departments)
             if(!userDepTab.includes(user.departments)){
                 userDepTab.push(user.departments);
             }
@@ -80,12 +89,13 @@ function UserList(){
             }
             });
         //on défini le state de DpList avec les départements de depList
-        setDpList(depList);
+            setDpList(depList);
+
     }
 
     const filter = (e) =>{
         const dprtKey = e.target.value;
-        //on récupère la valeur de l'option sélectionnée
+        //on récupère la valeur du département sélectionné
         if (dprtKey !== ""){
             let results = [];
             //on filtre le tableau des départements de chaque usager
@@ -97,6 +107,7 @@ function UserList(){
                 });
                 return results;
             });
+            //on affiche uniquements les utilisateurs qui peuvent se déplacer dans ce départements
             setFoundUser(results);
         }else{
             //si il n'y a pas d'option sélectionnée on affiche la liste complète
@@ -108,21 +119,24 @@ function UserList(){
     return (
         <div>
             <h2>Liste des Utilisateurs : </h2>
-            {foundUser && foundUser.length > 0 ? (foundUser.map((user)=>
-            <div key={user.id}>nom : {user.name}, département : {user.departments}</div>
-            )) : (
-            <h2>Aucun résultat</h2>
-            )}
+            <div className="Container">
+            {foundUser && foundUser.length > 0 && (foundUser.map((user)=>
+            <div key={user.id}>{user.name}</div>
+            ))}
+            </div>
             <h2>Filtrer en fonction des départements</h2>
-            <select defaultValue={""} onChange={filter}>
+            <div className="Container">
+            <select defaultValue={""} onChange={filter} onClick={dpDataToArray}>
                 <option value="" >Aucun</option>
                 {dpList && dpList.length > 0 && dpList.map((dpr)=>
                 <option key={dpr.code} value={dpr.code}>{dpr.nom} N° {dpr.code}</option>
                 )}
             </select>
+            </div>
         </div>
     );
 
 }
 
 export default UserList;
+

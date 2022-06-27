@@ -1,0 +1,12 @@
+.Container{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+h2{
+    text-align: center;
+}
+select{
+    min-width:177px;
+}
